@@ -329,27 +329,6 @@ void Sync(Ship *ship[10])
 	}
 }
 
-sf::Socket::Status sendCell(int x,int y,Game *game)
-{
-	sf::Packet pack;
-	bool turn;
-	turn = game->turn;
-	pack << x << y << turn;
-	return game->socket.send(pack);
-}
-
-sf::Vector2i receiveCell(Game *game)
-{
-	sf::Packet pack;
-	bool turn;
-	game->stat = game->socket.receive(pack);
-	sf::Vector2i temp;
-	pack >> temp.x >> temp.y >> turn;
-	game->turn = turn;
-	//game->turn = true;
-	return temp;
-}
-
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1200, 600), "Seawar");
@@ -383,64 +362,6 @@ int main()
 	string ip;
 	short port;
 	char cs;
-	//cout << "Enter ip:" << endl;
-	//cin >> ip;
-	//cout << endl << "Enter port" << endl;
-	//cin >> port;
-	ip = "46.175.250.105";
-	port = 27015;
-	cout << endl << "s or c" << endl;
-	cin >> cs;
-	//sf::TcpSocket socket;
-
-	if (cs == 'c')
-	{
-		window.setTitle("Client");
-		game.turn = false;
-		sf::Packet pack;
-		game.socket.connect(ip, port);
-		/*Ship shp[10];
-		socket.receive(pack);
-		for (int i = 0; i < 10; i++)
-		{
-			pack >> shp[i].rx >> shp[i].ry >> shp[i].type >> shp[i].id;
-			for (int j = 0; j < shp[i].type; j++)
-			{
-				pack >> shp[i].scell[j].rx >> shp[i].scell[j].ry;
-			}
-			cout << " " << shp[i].rx << " " << shp[i].ry << " " << shp[i].type << " " << shp[i].id;
-		}
-		game.setShip(shp);*/
-		/*
-		for (int i = 0; i < 10; i++)
-		{
-			//pack << ship[i]->rx << ship[i]->ry << ship[i]->type << ship[i]->id << ship[i]->direct;
-			for (int j = 0; j < ship[i]->type; j++)
-			{
-				//pack << ship[i]->scell[j].rx << ship[i]->scell[j].ry;
-			}
-		}*/
-		//socket.send(pack);
-
-	}
-	if (cs == 's')
-	{
-		window.setTitle("Server");
-		game.turn = true;
-		sf::Packet pack;
-		game.listener.listen(port) != sf::Socket::Done;
-		game.listener.accept(game.socket);/*
-		for (int i = 0; i < 10; i++)
-		{
-			pack << ship[i]->rx << ship[i]->ry << ship[i]->type << ship[i]->id;
-			for (int j = 0; j < ship[i]->type; j++)
-			{
-				pack << ship[i]->scell[j].rx << ship[i]->scell[j].ry;
-			}
-		}
-		socket.send(pack);*/
-	}
-
 
 	while (window.isOpen())
 	{
@@ -459,58 +380,7 @@ int main()
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 		{
 			//if (game.lock != 0) { game.lock = 0; }
-			sf::Vector2i pos = sf::Mouse::getPosition(window);
-			if (!game.type)
-			{
-				int h = 0;
-				while (h < 10)
-				{
-					for (int i = 0; i < ship[h]->type; i++)
-					{
-						if (ship[h]->scell[i].sc.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window))))
-						{
-							game.lock = h + 1;
-							ship[h]->id = h;
-						}
-					}
-					h++;
-				}
-			}
-			else
-			{
-				//setVE(pos.x, pos.y, &game, ship);
-				if (game.turn) 
-				{/*
-					sf::Socket::Status status = sendCell(pos.x, pos.y, &game);
-					if(status == sf::Socket::Status::Done)
-					{
-						//game.turn = false;
-						setVE(pos.x, pos.y, &game, game.eship);
-					}
-					if (status == sf::Socket::Done) {
-						std::cout << "Sent " << " bytes.\n";
-					}
-					else if (status == sf::Socket::Error) {
-						std::cout << "Error\n";
-					}
-					else if (status == sf::Socket::Disconnected) {
-						std::cout << "Disconnected\n";
-					}
-					else if (status == sf::Socket::NotReady) {
-						std::cout << "NotReady\n";
-					}
-					*/
-					//cout << "PRESSED" << endl;
-					if (pos.x >= 0 && pos.y >= 0)
-					{
-						setVE(pos.x, pos.y, &game, game.eship);
-						game.tx = pos.x;
-						game.ty = pos.y;
-						cout << pos.x << " DA " << pos.y;
-					}
-				}
-			}
-		}
+			//sf::Vector2i pos = sf::Mouse::getPosition(window);
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
 		{
 			//Sync(ship);
@@ -527,99 +397,14 @@ int main()
 				}else game.cir.setFillColor(sf::Color::Red);
 			}
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
-		{
-			if (game.lock != 0)
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 			{
-				if (ship[game.lock - 1]->direct == Ship::LEFT) ship[game.lock - 1]->direct = Ship::FORWARD;
-				else ship[game.lock - 1]->direct = Ship::LEFT;
+				if (game.lock != 0)
+				{
+					if (ship[game.lock - 1]->direct == Ship::LEFT) ship[game.lock - 1]->direct = Ship::FORWARD;
+					else ship[game.lock - 1]->direct = Ship::LEFT;
+				}
 			}
-		}
-		
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-		{
-			//game.setShip(*ship);
-			game.type = true;
-			//initConnection(&game,*ship);
-			if (cs == 'c')
-			{
-				sf::Packet pack;
-				//socket.connect(ip, port);
-				Ship shp[10];
-				game.socket.receive(pack);
-				for (int i = 0; i < 10; i++)
-				{
-					pack >> shp[i].rx >> shp[i].ry >> shp[i].type >> shp[i].id >> shp[i].live;
-					int temp;
-					pack >> temp;
-					if (temp == 1) shp[i].direct = Ship::LEFT;
-					if (temp == 0) shp[i].direct = Ship::FORWARD;
-
-					for (int j = 0; j < shp[i].type; j++)
-					{
-						pack >> shp[i].scell[j].rx >> shp[i].scell[j].ry >> shp[i].scell[j].live;
-					}
-					cout << " " << shp[i].rx << " " << shp[i].ry << " " << shp[i].type << " " << shp[i].id << endl;
-				}
-				game.setShip(shp);
-				pack.clear();
-				for (int i = 0; i < 10; i++)
-				{
-					pack << ship[i]->rx << ship[i]->ry << ship[i]->type << ship[i]->id << ship[i]->live;
-					int temp;
-					if (ship[i]->direct == Ship::LEFT) temp = 1;
-					if (ship[i]->direct == Ship::FORWARD) temp = 0;
-					pack << temp;
-					for (int j = 0; j < ship[i]->type; j++)
-					{
-						pack << ship[i]->scell[j].rx << ship[i]->scell[j].ry << ship[i]->scell[j].live;
-					}
-					cout << " " << ship[i]->rx << " " << ship[i]->ry << " " << ship[i]->type << " " << ship[i]->id << endl;
-				}
-				game.socket.send(pack);
-				//sendCell(1,1,&game);
-			}
-			else
-			{
-				sf::Packet pack;
-				for (int i = 0; i < 10; i++)
-				{
-					pack << ship[i]->rx << ship[i]->ry << ship[i]->type << ship[i]->id << ship[i]->live;
-					int temp;
-					if (ship[i]->direct == Ship::LEFT) temp = 1;
-					if (ship[i]->direct == Ship::FORWARD) temp = 0;
-					pack << temp;
-					for (int j = 0; j < ship[i]->type; j++)
-					{
-						pack << ship[i]->scell[j].rx << ship[i]->scell[j].ry << ship[i]->scell[j].live;
-					}
-					cout << " " << ship[i]->rx << " " << ship[i]->ry << " " << ship[i]->type << " " << ship[i]->id << endl;
-				}
-				game.socket.send(pack);
-				//#$^@#&%
-				pack.clear();
-				Ship shp[10];
-				game.socket.receive(pack);
-				for (int i = 0; i < 10; i++)
-				{
-					pack >> shp[i].rx >> shp[i].ry >> shp[i].type >> shp[i].id >> shp[i].live;
-					int temp;
-					pack >> temp;
-					if (temp == 1) shp[i].direct = Ship::LEFT;
-					if (temp == 0) shp[i].direct = Ship::FORWARD;
-
-					for (int j = 0; j < shp[i].type; j++)
-					{
-						pack >> shp[i].scell[j].rx >> shp[i].scell[j].ry >> shp[i].scell[j].live;
-					}
-					cout << " " << shp[i].rx << " " << shp[i].ry << " " << shp[i].type << " " << shp[i].id << endl;
-				}
-				//game.setShip(shp);
-				//sf::Vector2i temp = receiveCell(&game);
-				//cout << temp.x << temp.y << endl;
-			}
-
-		}
 			if (game.lock != 0)
 			{
 				sf::Vector2i pos = sf::Mouse::getPosition(window);
@@ -634,79 +419,6 @@ int main()
 			if(game.turn) game.cir.setFillColor(sf::Color::Blue);
 			if(!game.turn) game.cir.setFillColor(sf::Color::Red);
 
-		if (game.type)
-		{
-			//sf::Vector2i temp; //temp = receiveCell(&game);
-			//setV(temp.x, temp.y, &game, game.eship);
-			//cout << "We receive" << endl;
-			if (cs == 'c')
-			{
-				game.posn = receiveCell(&game);
-				if (game.posn.x != 0 && game.posn.y != 0)
-				{
-					if (game.m_missed[game.posn.x][game.posn.y] != "v")
-					{
-						//setV(game.posn.x, game.posn.y, &game, ship);
-					}
-				}
-				if (game.tx < 0) game.tx = 0;
-				if (game.ty < 0) game.ty = 0;
-				if (game.tx > 2000) game.tx = 0;
-				if (game.ty > 2000) game.ty = 0;
-				//cout <<  game.ty << endl;
-				cout << game.tx << " ETO " << game.ty;
-				sf::Socket::Status status = sendCell(game.tx,game.ty,&game);
-				if (status == sf::Socket::Status::Done)
-				{
-					//if(game.turn && game.tx != 0) game.turn = false;
-					game.tx = 0;
-					game.ty = 0;
-				}/*
-				if (game.stat == sf::Socket::Status::Done)
-				{
-					game.turn = true;
-					game.stat = sf::Socket::Status::Error;
-				}*/
-			}
-			//PROBLEMA V SERVEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-			if (cs == 's')
-			{
-				if (game.tx < 0) game.tx = 0;
-				if (game.ty < 0) game.ty = 0;
-				if (game.tx > 2000) game.tx = 0;
-				if (game.ty > 2000) game.ty = 0;
-				sf::Socket::Status status = sendCell(game.tx, game.ty, &game);
-				if (status == sf::Socket::Status::Done)
-				{
-					//if (game.turn && game.tx != 0) game.turn = false;
-					game.tx = 0;
-					game.ty = 0;
-				}
-				game.posn = receiveCell(&game);
-				//cout << game.posn.x << " " << game.posn.y;
-				//cout << game.posn.y << endl;
-				if (game.posn.x != 0 && game.posn.y != 0)
-				{
-					if (game.m_missed[game.posn.x][game.posn.y] != "v")
-					{
-						//setV(game.posn.x, game.posn.y, &game, ship);
-					}
-				}
-				/*
-				if (game.stat == sf::Socket::Status::Done) 
-				{
-					//game.turn = true;
-					game.stat = sf::Socket::Status::Error;
-				}*/
-			}
-			//receiveCell(&game);
-			/*
-			if (game.m_missed[game.posn.x][game.posn.y] != "v")
-			{
-				setV(game.posn.x,game.posn.y,&game,ship);
-				//game.turn = true;
-			}*/
-		}
 
 		window.clear();
 
